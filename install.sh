@@ -104,6 +104,16 @@ echo "  command  : $BIN_DIR/herdr-app"
 echo "  desktop  : $APPS_DIR/herdr-app.desktop"
 echo "  icon     : $ICON_DIR/herdr-app.svg"
 echo "  core (hc): $CORE_MSG"
+# Ubuntu 22.04 ships Mesa 23.2.x, which draws a black window with this build (see README "Ubuntu 22.04").
+if command -v dpkg-query >/dev/null 2>&1; then
+  MESA_VER="$(dpkg-query -W -f='${Version}' mesa-vulkan-drivers 2>/dev/null || true)"
+  case "$MESA_VER" in
+    2[0-3].*|1[0-9].*)
+      echo
+      echo "NOTE: mesa-vulkan-drivers is $MESA_VER. Herdr needs a newer Mesa on this system"
+      echo "      (Ubuntu 22.04: Mesa 25 from the kisak/turtle PPA). See README section \"Ubuntu 22.04\"." ;;
+  esac
+fi
 case ":$PATH:" in
   *":$BIN_DIR:"*) ;;
   *) echo
