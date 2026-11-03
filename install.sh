@@ -25,7 +25,7 @@ for arg in "$@"; do
     --deps=*) DEPS=yes; DEPS_DIR="${arg#--deps=}"
               [ -n "$DEPS_DIR" ] || { echo "--deps= needs a directory" >&2; exit 2; } ;;
     --dry-run) DRY=yes ;;
-    -h|--help) sed -n '2,12p' "$0"; exit 0 ;;
+    -h|--help) sed -n '2,11p' "$0"; exit 0 ;;
     *) echo "Unknown option: $arg" >&2; exit 2 ;;
   esac
 done
