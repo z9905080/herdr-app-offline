@@ -28,6 +28,21 @@ git clone https://github.com/z9905080/herdr-app-offline.git && cd herdr-app-offl
 - `./install.sh --copy`：先把 App 複製到 `~/.local/share/herdr-app`（官方安裝位置）再建 symlink，之後刪掉這個 repo 也能用。
 - `./install.sh --no-core`：不安裝／升級 herdr-core。
 - 預設（不加參數）：symlink 直接指向 repo，**不要移動或刪除這個 repo 資料夾**。（herdr-core 一律是複製到 `~/.local/bin`，跟官方一樣。）
+- `./install.sh --deps`：先用 `sudo` 安裝執行需要的系統套件（見下一節），再安裝 Herdr。
+- `./install.sh --deps --dry-run`：只列出會裝哪些套件（`apt-get -s` 模擬，不需要 sudo、不會改任何東西）。
+
+### `--deps`：自動安裝系統套件
+
+```bash
+./install.sh --deps --dry-run   # 先看會裝什麼
+./install.sh --deps             # 會要 sudo 密碼
+```
+
+- 從 `/etc/os-release` 判斷版本，用對應的套件清單（Ubuntu 24.04 → [24.04 清單](#執行環境需求ubuntu-2404)；22.04 → [22.04 清單](#2204-要裝的套件)，其中只有 PPA 才有的 Mesa 套件如 `mesa-libgallium`，apt 來源裡沒有時會自動略過）。Linux Mint 等以 Ubuntu 為基礎的發行版會照 `UBUNTU_CODENAME` 判斷；其他 Debian 系版本會警告並使用 24.04 清單。
+- **有內網 apt mirror**：直接執行 `sudo apt-get install -y <套件>`。裝失敗的話先 `sudo apt-get update` 再試。
+- **完全沒有 apt 來源**：把在外網下載好的 .deb 資料夾放進 repo 根目錄，`--deps` 會自動改成 `sudo apt-get install -y <資料夾>/*.deb`。依序找 `debs-jammy-<arch>/`（只在 22.04）、`debs-<arch>/`、`debs/`（`<arch>` 是 `amd64` 或 `arm64`）。資料夾放在別處就用 `./install.sh --deps=/path/to/debs`。下載方式見 [24.04](#在外網預先下載-apt-套件離線用) / [22.04](#在外網預先下載-2204-套件離線用)。
+- **22.04**：裝完如果 `mesa-vulkan-drivers` 還是 24 以前的版本（內建的 23.2.1），會印出警告——這個版本開出來是**黑畫面**。`--deps` 不會自動幫你加 PPA，請照 [Ubuntu 22.04](#ubuntu-2204) 那節處理（加 kisak/turtle PPA 或用離線 .deb）。
+- 不是 Ubuntu/Debian（沒有 apt）、沒裝 sudo、或目前使用者不能 sudo 時，會直接報錯結束，請管理員照 README 的清單手動安裝。用 root 執行時不需要 sudo。
 
 ### 確認安裝
 
@@ -102,6 +117,8 @@ apt-get download $(apt-cache depends --recurse --no-recommends --no-suggests \
 sudo apt-get install ./debs-amd64/*.deb    # arm64 機器改用 debs-arm64
 ```
 
+或者把 `debs-amd64`（或 `debs-arm64`）資料夾放在 repo 根目錄，直接 `./install.sh --deps`，會自動找到並安裝。
+
 （apt 會略過已經裝好的、版本相同的套件。內網機器如果更新過，版本可能比容器裡的新，那些套件會被略過，不影響使用。）
 
 ## Ubuntu 22.04
@@ -151,6 +168,8 @@ done
 sudo apt-get install ./debs-jammy-amd64/*.deb    # arm64 機器改用 debs-jammy-arm64
 ./install.sh
 ```
+
+或者把 `debs-jammy-amd64`（或 `debs-jammy-arm64`）資料夾放在 repo 根目錄，一行搞定：`./install.sh --deps`。
 
 裝完後確認：
 
